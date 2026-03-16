@@ -80,27 +80,24 @@ class DriverInfoWindow(QtWidgets.QWidget):
         # Driver portrait (FastF1)
         driver_url = drv.get("HeadshotUrl", None)
 
-        # Team logo (FastF1 if available)
-        team_logo_url = drv.get("TeamLogoUrl", None)
+        # Team logo (F1.com CDN)
+        team_slug = team_name.lower().replace(" ", "-")
+        team_logo_url = f"https://www.formula1.com/content/dam/fom-website/teams/{season}/{team_slug}-logo.png"
 
-        # Car image (F1.com)
-        team_slug = team_name.replace(" ", "-").lower()
+        # Car image (F1.com CDN)
         car_url = f"https://www.formula1.com/content/dam/fom-website/teams/{season}/{team_slug}.png"
 
-        # Nationality flag (simple mapping via country code if available)
+        # Country flag (FlagCDN)
         country_code = drv.get("CountryCode", None)
         flag_url = None
         if country_code:
-            # Simple flag CDN (e.g. flagcdn.com)
             flag_url = f"https://flagcdn.com/w80/{country_code.lower()}.png"
 
-        # Driver number (text only)
+        # Driver number
         number = drv.get("PermanentNumber", None)
-        if number:
-            self.number_label.setText(f"#{number}")
-        else:
-            self.number_label.setText("")
+        self.number_label.setText(f"#{number}" if number else "")
 
+        # Apply images
         self.set_scaled_image(self.driver_img, driver_url, max_height=260)
         self.set_scaled_image(self.car_img, car_url, max_height=220)
         self.set_scaled_image(self.team_logo_label, team_logo_url, max_height=80)
