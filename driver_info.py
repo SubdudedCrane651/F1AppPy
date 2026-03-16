@@ -2,6 +2,31 @@
 import requests
 from PyQt6 import QtWidgets, QtGui, QtCore
 
+IOC_TO_ISO = {
+    "GBR": "gb",
+    "USA": "us",
+    "NED": "nl",
+    "ESP": "es",
+    "CAN": "ca",
+    "MON": "mc",
+    "FRA": "fr",
+    "GER": "de",
+    "AUS": "au",
+    "FIN": "fi",
+    "DEN": "dk",
+    "MEX": "mx",
+    "BRA": "br",
+    "CHN": "cn",
+    "JPN": "jp",
+    "ITA": "it",
+    "SUI": "ch",
+    "AUT": "at",
+    "THA": "th",
+    "NZL": "nz",
+    "RSA": "za",
+    "BEL": "be",
+    "POL": "pl",
+}
 
 def fetch_image(url, timeout=5):
     if not url:
@@ -87,11 +112,13 @@ class DriverInfoWindow(QtWidgets.QWidget):
         # Car image (F1.com CDN)
         car_url = f"https://www.formula1.com/content/dam/fom-website/teams/{season}/{team_slug}.png"
 
-        # Country flag (FlagCDN)
+        # Country flag (IOC → ISO mapping)
         country_code = drv.get("CountryCode", None)
         flag_url = None
         if country_code:
-            flag_url = f"https://flagcdn.com/w80/{country_code.lower()}.png"
+            iso = IOC_TO_ISO.get(country_code.upper())
+            if iso:
+                flag_url = f"https://flagcdn.com/w80/{iso}.png"
 
         # Driver number
         number = drv.get("PermanentNumber", None)
@@ -102,7 +129,7 @@ class DriverInfoWindow(QtWidgets.QWidget):
         self.set_scaled_image(self.car_img, car_url, max_height=220)
         self.set_scaled_image(self.team_logo_label, team_logo_url, max_height=80)
         self.set_scaled_image(self.flag_label, flag_url, max_height=40)
-
+   
     def set_scaled_image(self, label, url, max_height=260):
         if not url:
             label.setText("Image not available")
