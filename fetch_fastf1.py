@@ -43,7 +43,6 @@ def import_season(year: int):
     print(schedule[["RoundNumber", "EventName", "EventDate"]])
     print(f"Found {len(schedule)} events")
 
-    # Insert races
     for _, event in schedule.iterrows():
         if str(event["EventFormat"]).lower() == "testing":
             continue
@@ -70,7 +69,6 @@ def import_season(year: int):
 
     conn.commit()
 
-    # Load results
     cur.execute("SELECT race_id, round FROM races WHERE season_id = ? ORDER BY round", (season_id,))
     races = cur.fetchall()
 
@@ -94,13 +92,11 @@ def import_season(year: int):
             constructor_name = r["TeamName"]
             constructor_id = constructor_name.replace(" ", "_").lower()
 
-            # Insert driver
             cur.execute("""
                 INSERT OR IGNORE INTO drivers (driver_id, code, first_name, last_name)
                 VALUES (?, ?, ?, ?)
             """, (driver_id, code, first_name, last_name))
 
-            # Insert constructor
             cur.execute("""
                 INSERT OR IGNORE INTO constructors (constructor_id, name)
                 VALUES (?, ?)
@@ -142,4 +138,8 @@ def import_season(year: int):
 
 
 if __name__ == "__main__":
-    import_season(2023)
+    try:
+        year = int(input("Enter season year to import: "))
+        import_season(year)
+    except ValueError:
+        print("Invalid year. Please enter a number like 2023.")
