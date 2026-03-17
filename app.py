@@ -1,7 +1,7 @@
 # app.py
 import sys
 from PyQt6 import QtWidgets, QtCore
-from db import init_db, get_seasons, get_races_for_season, get_results_for_race
+from db import get_team_points, init_db, get_seasons, get_races_for_season, get_results_for_race, debug_list_tables,debug_race_results_columns
 from PyQt6.QtWidgets import (
     QApplication,
     QMainWindow,
@@ -16,6 +16,19 @@ from PyQt6.QtWidgets import (
     QVBoxLayout,
     QListWidget,
 )
+
+TEAM_COLORS = {
+    "Red Bull": "#3671C6",
+    "Ferrari": "#F91536",
+    "Mercedes": "#6CD3BF",
+    "McLaren": "#FF8000",
+    "Aston Martin": "#229971",
+    "Alpine": "#0090FF",
+    "Williams": "#00A0DE",
+    "RB": "#6692FF",
+    "Kick Sauber": "#52E252",
+    "Haas": "#B6BABD",
+}
 
 from matplotlib.backends.backend_qtagg import FigureCanvasQTAgg as FigureCanvas
 from matplotlib.figure import Figure
@@ -516,6 +529,8 @@ class MainWindow(QtWidgets.QWidget):
 
 def main():
     init_db()
+    debug_list_tables()
+    debug_race_results_columns()
     app = QtWidgets.QApplication(sys.argv)
     win = MainWindow()
     win.resize(1200, 750)

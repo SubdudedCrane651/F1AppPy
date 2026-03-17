@@ -104,14 +104,32 @@ def get_team_points():
     conn = get_connection()
     cur = conn.cursor()
     cur.execute("""
-        SELECT constructor_name, SUM(points) AS total_points
-        FROM results
-        GROUP BY constructor_name
+        SELECT c.name AS constructor_name,
+               SUM(r.points) AS total_points
+        FROM race_results r
+        JOIN constructors c ON r.constructor_id = c.constructor_id
+        GROUP BY c.name
         ORDER BY total_points DESC
     """)
     rows = cur.fetchall()
     conn.close()
     return rows
+
+def debug_race_results_columns():
+    conn = get_connection()
+    cur = conn.cursor()
+    cur.execute("PRAGMA table_info(race_results)")
+    for col in cur.fetchall():
+        print(col[1])  # <-- print the column name
+    conn.close()
+
+def debug_list_tables():
+    conn = get_connection()
+    cur = conn.cursor()
+    cur.execute("SELECT name FROM sqlite_master WHERE type='table'")
+    tables = [row[0] for row in cur.fetchall()]
+    print("Tables:", tables)
+    conn.close()
 
 def get_races_for_season(season_id):
     conn = get_connection()
