@@ -2,7 +2,29 @@
 import sys
 from PyQt6 import QtWidgets, QtCore
 from db import init_db, get_seasons, get_races_for_season, get_results_for_race
+from PyQt6.QtWidgets import (
+    QApplication,
+    QMainWindow,
+    QWidget,
+    QHBoxLayout,
+    QLabel,
+    QComboBox,
+    QTabWidget,
+    QPushButton,
+    QTableView,
+    QHeaderView,
+    QVBoxLayout,
+    QListWidget,
+)
 
+from matplotlib.backends.backend_qtagg import FigureCanvasQTAgg as FigureCanvas
+from matplotlib.figure import Figure
+
+class MplCanvas(FigureCanvas):
+    def __init__(self, width=5, height=4, dpi=100):
+        self.fig = Figure(figsize=(width, height), dpi=dpi)
+        self.ax = self.fig.add_subplot(111)
+        super().__init__(self.fig)
 
 class ResultsTableModel(QtCore.QAbstractTableModel):
     def __init__(self, data, headers):
@@ -28,8 +50,7 @@ class ResultsTableModel(QtCore.QAbstractTableModel):
             if orientation == QtCore.Qt.Orientation.Horizontal:
                 return self._headers[section]
             return section + 1
-
-
+        
 class MainWindow(QtWidgets.QWidget):
     def __init__(self):
         super().__init__()
@@ -38,6 +59,9 @@ class MainWindow(QtWidgets.QWidget):
         self.season_combo = QtWidgets.QComboBox()
         self.race_combo = QtWidgets.QComboBox()
         self.table = QtWidgets.QTableView()
+        self.tab_team = QtWidgets.QWidget()               # 1) Create the widget
+        self._build_tab_team()                  # 2) Build its layout
+
 
         self._season_map = {}
         self._race_map = {}
@@ -60,6 +84,7 @@ class MainWindow(QtWidgets.QWidget):
         self.tabs.addTab(self.pitstop_tab, "Pit Stops")
         self.tabs.addTab(self.sector_tab, "Sectors")
         self.tabs.addTab(self.stats_tab, "Driver Stats")
+        self.tabs.addTab(self.tab_team, "Team Performance")
 
         top = QtWidgets.QHBoxLayout()
         top.addWidget(QtWidgets.QLabel("Season:"))
@@ -101,6 +126,29 @@ class MainWindow(QtWidgets.QWidget):
             self._season_map[label] = s["season_id"]
         if seasons:
             self.on_season_changed(0)
+
+    def update_team_performance(self):
+        rows = get_team_points()
+        teams = [r["constructor_name"] for r in rows]
+        points = [r["total_points"] for r in rows]
+
+        colors = [TEAM_COLORS.get(t, "#888888") for t in teams]
+
+        self.team_canvas.ax.clear()
+
+        if teams:
+            self.team_canvas.ax.barh(teams, points, color=colors)
+            self.team_canvas.ax.set_title("Team Performance (Total Points)")
+            self.team_canvas.ax.set_xlabel("Points")
+            self.team_canvas.fig.tight_layout()
+        else:
+            self.team_canvas.ax.text(
+                0.5, 0.5, "No data",
+                ha="center", va="center",
+                transform=self.team_canvas.ax.transAxes
+            )
+
+        self.team_canvas.draw()            
 
     def on_season_changed(self, index):
         if index < 0:
@@ -218,6 +266,18 @@ class MainWindow(QtWidgets.QWidget):
             self.lapchart_canvas.setParent(None)
         self.lapchart_canvas = FigureCanvasQTAgg(fig)
         self.lapchart_tab.layout().addWidget(self.lapchart_canvas)
+
+    def _build_tab_team(self):
+        layout = QVBoxLayout(self.tab_team)
+
+        # Matplotlib canvas for the bar chart
+        self.team_canvas = MplCanvas(width=6, height=4, dpi=100)
+        layout.addWidget(self.team_canvas)
+
+        # Refresh button
+        btn = QPushButton("Refresh Team Performance")
+        btn.clicked.connect(self.update_team_performance)
+        layout.addWidget(btn)        
 
     # ---------- Telemetry ----------
     def build_telemetry_tab(self):

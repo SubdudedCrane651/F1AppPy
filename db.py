@@ -100,6 +100,18 @@ def get_seasons():
     conn.close()
     return rows
 
+def get_team_points():
+    conn = get_connection()
+    cur = conn.cursor()
+    cur.execute("""
+        SELECT constructor_name, SUM(points) AS total_points
+        FROM results
+        GROUP BY constructor_name
+        ORDER BY total_points DESC
+    """)
+    rows = cur.fetchall()
+    conn.close()
+    return rows
 
 def get_races_for_season(season_id):
     conn = get_connection()
