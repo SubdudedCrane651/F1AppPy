@@ -17,6 +17,41 @@ from PyQt6.QtWidgets import (
     QListWidget,
 )
 
+import os
+import matplotlib.image as mpimg
+from matplotlib.offsetbox import OffsetImage, AnnotationBbox
+
+def add_team_logos_to_horizontal_bars(ax, teams, logo_dir="assets/team_logos", pixel_size=20):
+    bars = ax.patches
+
+    for bar, team in zip(bars, teams):
+        filename = f"{team.replace(' ', '_')}_logo.png"
+        path = os.path.join(logo_dir, filename)
+
+        if not os.path.exists(path):
+            print(f"Logo not found for {team}: {path}")
+            continue
+
+        img = mpimg.imread(path)
+
+        # Create a small image box (pixel_size controls the size)
+        imagebox = OffsetImage(img, zoom=pixel_size / 100.0)  
+        imagebox.image.axes = ax
+
+        # Position: left side of the bar, centered vertically
+        x = bar.get_x() + 2
+        y = bar.get_y() + bar.get_height() / 2
+
+        ab = AnnotationBbox(
+            imagebox,
+            (x, y),
+            frameon=False,
+            box_alignment=(0, 0.5),
+            xycoords='data',
+            zorder=10
+        )
+
+        ax.add_artist(ab)
 TEAM_COLORS = {
     "Red Bull": "#3671C6",
     "Ferrari": "#F91536",
@@ -141,27 +176,33 @@ class MainWindow(QtWidgets.QWidget):
             self.on_season_changed(0)
 
     def update_team_performance(self):
-        rows = get_team_points()
-        teams = [r["constructor_name"] for r in rows]
-        points = [r["total_points"] for r in rows]
+            rows = get_team_points()
+            teams = [r["constructor_name"] for r in rows]
+            points = [r["total_points"] for r in rows]
 
-        colors = [TEAM_COLORS.get(t, "#888888") for t in teams]
+            colors = [TEAM_COLORS.get(t, "#888888") for t in teams]
 
-        self.team_canvas.ax.clear()
+            ax = self.team_canvas.ax
+            ax.clear()
 
-        if teams:
-            self.team_canvas.ax.barh(teams, points, color=colors)
-            self.team_canvas.ax.set_title("Team Performance (Total Points)")
-            self.team_canvas.ax.set_xlabel("Points")
-            self.team_canvas.fig.tight_layout()
-        else:
-            self.team_canvas.ax.text(
-                0.5, 0.5, "No data",
-                ha="center", va="center",
-                transform=self.team_canvas.ax.transAxes
-            )
+            if teams:
+                # Draw bars FIRST
+                ax.barh(teams, points, color=colors)
 
-        self.team_canvas.draw()            
+                # Add logos AFTER bars exist
+                add_team_logos_to_horizontal_bars(ax, teams)
+
+                ax.set_title("Team Performance (Total Points)")
+                ax.set_xlabel("Points")
+                self.team_canvas.fig.tight_layout()
+            else:
+                ax.text(
+                    0.5, 0.5, "No data",
+                    ha="center", va="center",
+                    transform=ax.transAxes
+                )
+
+            self.team_canvas.draw()      
 
     def on_season_changed(self, index):
         if index < 0:
@@ -529,8 +570,8 @@ class MainWindow(QtWidgets.QWidget):
 
 def main():
     init_db()
-    debug_list_tables()
-    debug_race_results_columns()
+    # debug_list_tables()
+    # debug_race_results_columns()
     app = QtWidgets.QApplication(sys.argv)
     win = MainWindow()
     win.resize(1200, 750)
