@@ -2,8 +2,13 @@
 import fastf1
 import pandas as pd
 from db import get_connection, init_db
+import os
+from pathlib import Path
 
-fastf1.Cache.enable_cache('cache')
+CACHE_DIR = Path(os.getenv("LOCALAPPDATA")) / "F1StatsExplorer" / "cache"
+CACHE_DIR.mkdir(parents=True, exist_ok=True)
+
+fastf1.Cache.enable_cache(str(CACHE_DIR))
 
 
 def safe_int(value):

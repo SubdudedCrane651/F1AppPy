@@ -111,9 +111,8 @@ class MainWindow(QtWidgets.QWidget):
         self.race_combo.clear()
         self._race_map.clear()
         for r in races:
-            lbl = f"R{r['round']:02d} - {r['name']}"
-            self.race_combo.addItem(lbl)
-            self._race_map[lbl] = r["race_id"]
+             lbl = f"R{r['round']:02d} - {r['name']}"
+             self.race_combo.addItem(lbl, userData=r["race_id"])
         if races:
             self.on_race_changed(0)
 
@@ -121,7 +120,7 @@ class MainWindow(QtWidgets.QWidget):
         if index < 0:
             return
         label = self.race_combo.currentText()
-        race_id = self._race_map[label]
+        race_id = self.race_combo.currentData()
         results = get_results_for_race(race_id)
 
         data = []
