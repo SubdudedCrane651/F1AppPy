@@ -17,6 +17,8 @@ from PyQt6.QtWidgets import (
     QListWidget,
 )
 
+from PyQt6.QtGui import QIcon
+
 import os
 import matplotlib.image as mpimg
 from matplotlib.offsetbox import OffsetImage, AnnotationBbox
@@ -103,6 +105,7 @@ class MainWindow(QtWidgets.QWidget):
     def __init__(self):
         super().__init__()
         self.setWindowTitle("F1 Stats Explorer")
+        self.setWindowIcon(QIcon("F1_logo.jpg"))
 
         self.season_combo = QtWidgets.QComboBox()
         self.race_combo = QtWidgets.QComboBox()

@@ -48,6 +48,7 @@ Name: "desktopicon"; Description: "{cm:CreateDesktopIcon}"; GroupDescription: "{
 [Files]
 Source: "F:\Python\F1AppPy\dist\{#MyAppExeName}"; DestDir: "{app}"; Flags: ignoreversion
 Source: "F:\Python\F1AppPy\dist\fetch_fastf1.exe"; DestDir: "{app}"; Flags: ignoreversion
+Source: "F:\Python\F1AppPy\assets\team_logos\*"; DestDir: "{app}\assets\team_logos"; Flags: recursesubdirs createallsubdirs
 ; NOTE: Don't use "Flags: ignoreversion" on any shared system files
 
 [Registry]
