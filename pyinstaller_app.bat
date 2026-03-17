@@ -1,0 +1,1 @@
+pyinstaller --icon=F1_logo.ico --onefile --console app.py

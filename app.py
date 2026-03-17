@@ -105,7 +105,7 @@ class MainWindow(QtWidgets.QWidget):
     def __init__(self):
         super().__init__()
         self.setWindowTitle("F1 Stats Explorer")
-        self.setWindowIcon(QIcon("F1_logo.jpg"))
+        self.setWindowIcon(QIcon("F1_logo.png"))
 
         self.season_combo = QtWidgets.QComboBox()
         self.race_combo = QtWidgets.QComboBox()

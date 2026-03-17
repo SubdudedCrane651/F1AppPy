@@ -35,9 +35,12 @@ ChangesAssociations=yes
 DisableProgramGroupPage=yes
 ; Uncomment the following line to run in non administrative install mode (install for current user only).
 ;PrivilegesRequired=lowest
-OutputBaseFilename=mysetup
+OutputBaseFilename=F1_app_setup
 SolidCompression=yes
 WizardStyle=modern
+
+[Setup]
+SetupIconFile=F:\Python\F1AppPy\F1_logo.ico
 
 [Languages]
 Name: "english"; MessagesFile: "compiler:Default.isl"
@@ -48,6 +51,7 @@ Name: "desktopicon"; Description: "{cm:CreateDesktopIcon}"; GroupDescription: "{
 [Files]
 Source: "F:\Python\F1AppPy\dist\{#MyAppExeName}"; DestDir: "{app}"; Flags: ignoreversion
 Source: "F:\Python\F1AppPy\dist\fetch_fastf1.exe"; DestDir: "{app}"; Flags: ignoreversion
+Source: "F:\Python\F1AppPy\F1_logo.png"; DestDir: "{app}"
 Source: "F:\Python\F1AppPy\assets\team_logos\*"; DestDir: "{app}\assets\team_logos"; Flags: recursesubdirs createallsubdirs
 ; NOTE: Don't use "Flags: ignoreversion" on any shared system files
 
