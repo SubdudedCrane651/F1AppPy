@@ -105,14 +105,21 @@ class MainWindow(QtWidgets.QWidget):
     def on_season_changed(self, index):
         if index < 0:
             return
+
         label = self.season_combo.currentText()
         season_id = self._season_map[label]
+
         races = get_races_for_season(season_id)
+        self.races = races  # <-- FIX #1
+
         self.race_combo.clear()
         self._race_map.clear()
+
         for r in races:
-             lbl = f"R{r['round']:02d} - {r['name']}"
-             self.race_combo.addItem(lbl, userData=r["race_id"])
+            lbl = f"R{r['round']:02d} - {r['name']}"
+            self.race_combo.addItem(lbl, userData=r["race_id"])
+            self._race_map[lbl] = r["race_id"]  # <-- FIX #2
+
         if races:
             self.on_race_changed(0)
 
@@ -435,8 +442,8 @@ class MainWindow(QtWidgets.QWidget):
         self.stats_list.clear()
         if self.race_combo.count() == 0:
             return
-        label = self.race_combo.currentText()
-        race_id = self._race_map[label]
+        idx = self.race_combo.currentIndex()
+        race_id = self.races[idx]["race_id"]
         results = get_results_for_race(race_id)
         for r in results:
             code = r["driver_code"]
