@@ -1,0 +1,1 @@
+This is a Python PyQt6 GUI application for Formula 1 Fans that uses a database creator and app to get F1 stats.
