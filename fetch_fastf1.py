@@ -97,6 +97,7 @@ def import_season(year: int):
         schedule = ergast.get_race_schedule(season=year)
         print("ERGAST SCHEDULE COLUMNS:", list(schedule.columns))
 
+        # Insert schedule into DB
         for _, event in schedule.iterrows():
             round_num = int(event["round"])
             race_name = event["raceName"]
@@ -118,45 +119,55 @@ def import_season(year: int):
 
         conn.commit()
 
-        # Load race results (ErgastMultiResponse)
-        response = ergast.get_race_results(season=year)
-        print("ERGAST RESULTS TYPE:", type(response))
+        # Fetch results PER ROUND
+        for _, event in schedule.iterrows():
+            round_num = int(event["round"])
+            race_name = event["raceName"]
 
-        # Your version uses .content (list of race objects)
-        for race in response.content:
+            print(f"Fetching results for round {round_num}: {race_name}")
 
-            df = race.results  # DataFrame of results for this round
+            # Fetch results for this round
+            response = ergast.get_race_results(season=year, round=round_num)
 
-            # round number is inside the DataFrame, not on the race object
-            round_num = int(df["round"].iloc[0])
+            # Your version returns a list of ErgastResultFrame in .content
+            df = response.content[0]
 
-            print(f"Processing results for round {round_num}")
+            print("RESULT COLUMNS:", list(df.columns))
+            print("FULL RESULT ROW:", df.iloc[0])
 
-            cur.execute("SELECT race_id FROM races WHERE season_id = ? AND round = ?", (season_id, round_num))
+            # Get race_id from DB
+            cur.execute(
+                "SELECT race_id FROM races WHERE season_id = ? AND round = ?",
+                (season_id, round_num),
+            )
             race_id = cur.fetchone()["race_id"]
 
+            # Insert results
             for _, r in df.iterrows():
-                driver = r["Driver"]
-                constructor = r["Constructor"]
 
-                driver_id = driver["driverId"]
-                code = driver.get("code", None)
-                first_name = driver["givenName"]
-                last_name = driver["familyName"]
+                # Driver fields (flat)
+                driver_id = r["driverId"]
+                code = r["driverCode"]
+                first_name = r["givenName"]
+                last_name = r["familyName"]
 
-                constructor_name = constructor["name"]
-                constructor_id = constructor_name.replace(" ", "_").lower()
+                # Constructor fields (flat)
+                constructor_id = r["constructorId"]
+                constructor_name = r["constructorName"]
 
+                # Insert driver
                 cur.execute("""
                     INSERT OR IGNORE INTO drivers (driver_id, code, first_name, last_name)
                     VALUES (?, ?, ?, ?)
                 """, (driver_id, code, first_name, last_name))
 
+                # Insert constructor
                 cur.execute("""
                     INSERT OR IGNORE INTO constructors (constructor_id, name)
                     VALUES (?, ?)
                 """, (constructor_id, constructor_name))
 
+                # Insert race result
                 cur.execute("""
                     INSERT OR REPLACE INTO race_results (
                         race_id, driver_id, constructor_id,
@@ -169,14 +180,14 @@ def import_season(year: int):
                     race_id,
                     driver_id,
                     constructor_id,
-                    safe_int(r.get("grid")),
-                    safe_int(r.get("position")),
-                    safe_str(r.get("status")),
-                    float(r.get("points", 0)),
-                    safe_int(r.get("laps")),
-                    safe_str(r.get("time")),
-                    None,
-                    None
+                    safe_int(r["grid"]),
+                    safe_int(r["position"]),
+                    safe_str(r["status"]),
+                    float(r["points"]),
+                    safe_int(r["laps"]),
+                    safe_str(r["totalRaceTime"]),
+                    safe_int(r["fastestLapRank"]),
+                    safe_str(r["fastestLapTime"]),
                 ))
 
         conn.commit()
