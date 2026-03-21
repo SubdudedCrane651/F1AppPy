@@ -93,7 +93,9 @@ def import_season(year: int):
     if use_ergast(year):
         print("Using ERGAST mode for this season")
 
-        # Load schedule (DataFrame)
+        # ------------------------------------------------------------
+        # 1. Load schedule (DataFrame)
+        # ------------------------------------------------------------
         schedule = ergast.get_race_schedule(season=year)
         print("ERGAST SCHEDULE COLUMNS:", list(schedule.columns))
 
@@ -119,7 +121,9 @@ def import_season(year: int):
 
         conn.commit()
 
-        # Fetch results PER ROUND
+        # ------------------------------------------------------------
+        # 2. Fetch results PER ROUND
+        # ------------------------------------------------------------
         for _, event in schedule.iterrows():
             round_num = int(event["round"])
             race_name = event["raceName"]
@@ -142,18 +146,20 @@ def import_season(year: int):
             )
             race_id = cur.fetchone()["race_id"]
 
-            # Insert results
+            # ------------------------------------------------------------
+            # 3. Insert results (ALL SAFE — NO DIRECT INDEXING)
+            # ------------------------------------------------------------
             for _, r in df.iterrows():
 
                 # Driver fields (flat)
-                driver_id = r["driverId"]
-                code = r["driverCode"]
-                first_name = r["givenName"]
-                last_name = r["familyName"]
+                driver_id = r.get("driverId")
+                code = r.get("driverCode")
+                first_name = r.get("givenName")
+                last_name = r.get("familyName")
 
                 # Constructor fields (flat)
-                constructor_id = r["constructorId"]
-                constructor_name = r["constructorName"]
+                constructor_id = r.get("constructorId")
+                constructor_name = r.get("constructorName")
 
                 # Insert driver
                 cur.execute("""
@@ -167,7 +173,7 @@ def import_season(year: int):
                     VALUES (?, ?)
                 """, (constructor_id, constructor_name))
 
-                # Insert race result
+                # Insert race result (ALL fields safe)
                 cur.execute("""
                     INSERT OR REPLACE INTO race_results (
                         race_id, driver_id, constructor_id,
@@ -180,14 +186,14 @@ def import_season(year: int):
                     race_id,
                     driver_id,
                     constructor_id,
-                    safe_int(r["grid"]),
-                    safe_int(r["position"]),
-                    safe_str(r["status"]),
-                    float(r["points"]),
-                    safe_int(r["laps"]),
-                    safe_str(r["totalRaceTime"]),
-                    safe_int(r["fastestLapRank"]),
-                    safe_str(r["fastestLapTime"]),
+                    safe_int(r.get("grid")),
+                    safe_int(r.get("position")),
+                    safe_str(r.get("status")),
+                    float(r.get("points", 0)),
+                    safe_int(r.get("laps")),
+                    safe_str(r.get("totalRaceTime")),
+                    safe_int(r.get("fastestLapRank")),   # SAFE
+                    safe_str(r.get("fastestLapTime")),   # SAFE
                 ))
 
         conn.commit()
