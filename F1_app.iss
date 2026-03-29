@@ -38,9 +38,15 @@ DisableProgramGroupPage=yes
 OutputBaseFilename=F1_app_setup
 SolidCompression=yes
 WizardStyle=modern
+UsePreviousAppDir=no
 
 [Setup]
 SetupIconFile=F:\Python\F1AppPy\F1_logo.ico
+
+[Icons]
+; Desktop shortcut
+Name: "{commondesktop}\Fetch_fastf1 - Shortcut"; Filename: "{app}\fetch_fastf1.exe"
+
 
 [Languages]
 Name: "english"; MessagesFile: "compiler:Default.isl"
