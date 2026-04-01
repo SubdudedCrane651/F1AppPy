@@ -1,1 +1,7 @@
-/cache
+cache/
+Output/
+build/
+dist/
+__pycache__/
+*.exe
+*.dll
